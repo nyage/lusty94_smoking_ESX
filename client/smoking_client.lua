@@ -1,4 +1,4 @@
-local QBCore = exports['qb-core']:GetCoreObject()
+ESX = exports["es_extended"]:getSharedObject()
 local InvType = Config.CoreSettings.Inventory.Type
 local TargetType = Config.CoreSettings.Target.Type
 local NotifyType = Config.CoreSettings.Notify.Type
@@ -43,11 +43,11 @@ end)
 
 
 --open cig packs
-RegisterNetEvent('lusty94_smoking:client:OpenPack', function(itemName)
+RegisterNetEvent('lusty94_smoking:client:OpenPack', function(item)
     if busy then
         SendNotify("You Are Already Doing Something!", 'error', 2000)
     else
-        QBCore.Functions.TriggerCallback('lusty94_smoking:get:CigPacks', function(HasItems)  
+        ESX.TriggerServerCallback('lusty94_smoking:get:CigPacks', function(HasItems)  
             if HasItems then
                 busy = true
                 LockInventory(true)
@@ -63,7 +63,7 @@ RegisterNetEvent('lusty94_smoking:client:OpenPack', function(itemName)
                 }) then
                     busy = false
                     LockInventory(false)
-                    TriggerServerEvent("lusty94_smoking:server:OpenPack", itemName)
+                    TriggerServerEvent("lusty94_smoking:server:OpenPack", item)
                     SendNotify("You opened a pack of cigarettes!", 'success', 2000)
                 else 
                     busy = false
@@ -83,7 +83,7 @@ RegisterNetEvent('lusty94_smoking:client:SmokeCig', function()
     if busy then
         SendNotify("You Are Already Doing Something!", 'error', 2000)
     else
-        QBCore.Functions.TriggerCallback('lusty94_smoking:get:Cigs', function(HasItems)  
+        ESX.TriggerServerCallback('lusty94_smoking:get:Cigs', function(HasItems)  
             if HasItems then
                 busy = true
                 LockInventory(true)
@@ -99,8 +99,8 @@ RegisterNetEvent('lusty94_smoking:client:SmokeCig', function()
                 }) then
                     TriggerServerEvent('lusty94_smoking:server:SmokeCig')
                     SendNotify("You smoked a cig!", 'success', 2000)
-                    if Config.CoreSettings.Effects.RemoveHealth then
-                        SetEntityHealth(playerPed, GetEntityHealth(playerPed) - Config.CoreSettings.Effects.HealthAmount)
+                    if Config.CoreSettings.Effects.AddHealth then
+                        SetEntityHealth(playerPed, GetEntityHealth(playerPed) + Config.CoreSettings.Effects.VapeHealthAmount)
                     end
                     if Config.CoreSettings.Effects.AddArmour then
                         AddArmourToPed(playerPed, Config.CoreSettings.Effects.ArmourAmount)
@@ -129,7 +129,7 @@ RegisterNetEvent('lusty94_smoking:client:SmokeVape', function()
     if busy then
         SendNotify("You Are Already Doing Something!", 'error', 2000)
     else
-        QBCore.Functions.TriggerCallback('lusty94_smoking:get:Vape', function(HasItems)  
+        ESX.TriggerServerCallback('lusty94_smoking:get:Vape', function(HasItems)  
             if HasItems then
                 busy = true
                 LockInventory(true)

@@ -1,4 +1,4 @@
-local QBCore = exports['qb-core']:GetCoreObject()
+ESX = exports["es_extended"]:getSharedObject()
 local InvType = Config.CoreSettings.Inventory.Type
 
 --notification function
@@ -21,63 +21,62 @@ local function SendNotify(src, msg, type, time, title)
     end
 end
 
-QBCore.Functions.CreateUseableItem("cigs", function(source, item)
+ESX.RegisterUsableItem("cigs", function(source, item)
     TriggerClientEvent("lusty94_smoking:client:SmokeCig", source)
 end)
 
-QBCore.Functions.CreateUseableItem("vape", function(source, item)
+ESX.RegisterUsableItem("vape", function(source, item)
     TriggerClientEvent("lusty94_smoking:client:SmokeVape", source)
 end)
 
 
 
---useable items for smoking
-for k,_ in pairs(Config.SmokingItems) do
-    QBCore.Functions.CreateUseableItem(k, function(source, item)
-        TriggerClientEvent("lusty94_smoking:client:OpenPack", source, item.name)
+
+for item in pairs(Config.SmokingItems) do
+    ESX.RegisterUsableItem(item, function(source)
+        TriggerClientEvent("lusty94_smoking:client:OpenPack", source, item)  
     end)
 end
 
 --smoke cig
 RegisterNetEvent('lusty94_smoking:server:OpenPack', function(item)
     local src = source
-    local Player = QBCore.Functions.GetPlayer(source)
+    local Player = ESX.GetPlayerFromId(src)
     if not Player then return end
-    local cigItem = nil
-    for k in pairs(Config.SmokingItems) do
-        if k == item then
-            cigItem = k
-            break
-        end
-    end
-    if not cigItem then return end
+    local cigItem = Player.getInventoryItem(item)  
+
+    if not cigItem or cigItem.count < 1 then return end  
+
     if InvType == 'qb' then
-        if exports['qb-inventory']:RemoveItem(src, cigItem, 1, nil, nil, nil) then
-            TriggerClientEvent('qb-inventory:client:ItemBox', src, QBCore.Shared.Items[cigItem], "remove")
-            exports['qb-inventory']:AddItem(src, 'cigs', 20, nil, nil, nil)
+        if exports['qb-inventory']:RemoveItem(src, cigItem.name, 1) then
+            TriggerClientEvent('qb-inventory:client:ItemBox', src, QBCore.Shared.Items[cigItem.name], "remove")
+            exports['qb-inventory']:AddItem(src, 'cigs', 20)
             TriggerClientEvent('qb-inventory:client:ItemBox', src, QBCore.Shared.Items['cigs'], "add", 20)
         end
     elseif InvType == 'ox' then
-        if exports.ox_inventory:RemoveItem(src, cigItem, 1) then
+        if exports.ox_inventory:RemoveItem(src, cigItem.name, 1) then  
             if exports.ox_inventory:CanCarryItem(src, "cigs", 20) then
                 exports.ox_inventory:AddItem(src, 'cigs', 20)
             else
-                SendNotify(src,"You Can\'t Carry Anymore of This Item!", 'error', 2000)
+                SendNotify(src, "You can't carry any more of this item!", 'error', 2000)
             end
         end
     end
 end)
 
 
+ESX.RegisterServerCallback('lusty94_smoking:get:CigPacks', function(source, cb)
+    local Ply = ESX.GetPlayerFromId(source)
 
-QBCore.Functions.CreateCallback('lusty94_smoking:get:CigPacks', function(source, cb)
-    local src = source
-    local Ply = QBCore.Functions.GetPlayer(src)
-    local pack1 = Ply.Functions.GetItemByName("redwoodpack")
-    local pack2 = Ply.Functions.GetItemByName("debonairepack")
-    local pack3 = Ply.Functions.GetItemByName("sixtyninepack")
-    local pack4 = Ply.Functions.GetItemByName("yukonpack")
-    if pack1 and pack1.amount >= 1 or pack2 and pack2.amount >= 1 or pack3 and pack3.amount >= 1 or pack4 and pack4.amount >= 1 then
+    local pack1 = Ply.getInventoryItem("redwoodpack")
+    local pack2 = Ply.getInventoryItem("debonairepack")
+    local pack3 = Ply.getInventoryItem("sixtyninepack")
+    local pack4 = Ply.getInventoryItem("yukonpack")
+
+    if (pack1 and pack1.count > 0) or 
+       (pack2 and pack2.count > 0) or 
+       (pack3 and pack3.count > 0) or 
+       (pack4 and pack4.count > 0) then
         cb(true)
     else
         cb(false)
@@ -86,24 +85,24 @@ end)
 
 
 
-QBCore.Functions.CreateCallback('lusty94_smoking:get:Cigs', function(source, cb)
+ESX.RegisterServerCallback('lusty94_smoking:get:Cigs', function(source, cb)
     local src = source
-    local Ply = QBCore.Functions.GetPlayer(src)
-    local cig = Ply.Functions.GetItemByName("cigs")
-    local lighter = Ply.Functions.GetItemByName("lighter")
-    if cig and cig.amount >=1 and lighter and lighter.amount >= 1 then
+    local Ply = ESX.GetPlayerFromId(src)
+    local cig = Ply.getInventoryItem("cigs")
+    local lighter = Ply.getInventoryItem("lighter")
+    if cig and cig.count >=1 and lighter and lighter.count >= 1 then
         cb(true)
     else
         cb(false)
     end
 end)
 
-QBCore.Functions.CreateCallback('lusty94_smoking:get:Vape', function(source, cb)
+ESX.RegisterServerCallback('lusty94_smoking:get:Vape', function(source, cb)
     local src = source
-    local Ply = QBCore.Functions.GetPlayer(src)
-    local vape = Ply.Functions.GetItemByName("vape")
-    local juice = Ply.Functions.GetItemByName("vapejuice")
-    if vape and vape.amount >=1 and juice and juice.amount >= 1 then
+    local Ply = ESX.GetPlayerFromId(src)
+    local vape = Ply.getInventoryItem("vape")
+    local juice = Ply.getInventoryItem("vapejuice")
+    if vape and vape.count >=1 and juice and juice.count >= 1 then
         cb(true)
     else
         cb(false)
@@ -113,7 +112,7 @@ end)
 
 RegisterNetEvent('lusty94_smoking:server:SmokeVape', function()
     local src = source
-    local Player = QBCore.Functions.GetPlayer(src)
+    local Player = ESX.GetPlayerFromId(src)
     if not Player then return end
     local chance = math.random(1,100)
     local remove = 25 -- edit this value for the chance of juice to be removed when smoking a vape currently a 1 in 4 chance
@@ -130,7 +129,7 @@ end)
 
 RegisterNetEvent('lusty94_smoking:server:SmokeCig', function()
     local src = source
-    local Player = QBCore.Functions.GetPlayer(src)
+    local Player = ESX.GetPlayerFromId(src)
     if not Player then return end
     if InvType == 'qb' then
         if exports['qb-inventory']:RemoveItem(src, 'cigs', 1, nil, nil, nil) then
@@ -144,7 +143,7 @@ end)
 
 RegisterNetEvent('lusty94_smoking:server:openShop', function()
     local src = source
-    local Player = QBCore.Functions.GetPlayer(src)
+    local Player = ESX.GetPlayerFromId(src)
     local smokingShop = {
         { name = "redwoodpack",      price = 250, amount = 100, info = {}, type = "item", slot = 1,}, 
         { name = "debonairepack",    price = 250, amount = 100, info = {}, type = "item", slot = 2,},

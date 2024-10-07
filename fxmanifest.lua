@@ -6,7 +6,7 @@ author 'Lusty94'
 
 name "lusty94_smoking"
 
-description 'Smoking Activity Script For QB-Core'
+description 'Smoking Activity Script For ESX'
 
 version '2.0.1'
 
@@ -24,7 +24,8 @@ server_scripts {
 
 shared_scripts { 
 	'shared/config.lua',
-    '@ox_lib/init.lua'
+    '@ox_lib/init.lua',
+    '@es_extended/imports.lua'
 }
 
 escrow_ignore {
@@ -32,3 +33,5 @@ escrow_ignore {
     'client/**.lua',
     'server/**.lua',
 }
+
+
